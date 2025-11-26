@@ -40,8 +40,10 @@
 # debug information files
 *.dwo
 
+# add 001
 obj
 Obj
 
+# add 002
 bin
 Bin
