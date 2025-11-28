@@ -42,5 +42,5 @@ jobs:
         uses: actions-ecosystem/action-add-labels@v1
         with:
           labels: status:${{ steps.get_issue_status.outputs.issue_status }}
-          issue-number: ${{ steps.get_issue_id.outputs.issue_id }}
+          number: ${{ steps.get_issue_id.outputs.issue_id }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
