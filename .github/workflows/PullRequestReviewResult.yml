@@ -45,5 +45,5 @@ jobs:
               issue_number:${{ steps.get_issue_id.outputs.issue_id }},
               owner:context.repo.owner,
               repo:context.repo.repo,
-              state:${{ steps.get_issue_status.outputs.issue_status }}
+              state:"Test"
             });
