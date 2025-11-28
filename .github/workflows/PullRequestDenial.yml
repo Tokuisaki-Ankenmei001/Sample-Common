@@ -14,5 +14,5 @@ jobs:
     steps:
       - name: Determine and log the branch name
         run: |
-          echo "GitHub Actions Ref: $GITHUB_REF"
+          echo "Review Status is : github.event.review.state"
 
