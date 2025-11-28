@@ -21,7 +21,7 @@ jobs:
           PR_BODY="${{ github.event.pull_request.body }}"
           ISSUE_ID=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
           if [ -n "$ISSUE_ID" ]; then
-            echo "::set-output name=issue_id::$ISSUE_ID"
+            echo "issue_id=$ISSUE_ID" >> $GITHUB_OUTPUT
             echo "Found Issue ID: $ISSUE_ID"
           else
             echo "::error::No Issue ID found in PR body. Please link an issue (e.g., #123)."
@@ -36,10 +36,11 @@ jobs:
           else
             ISSUE_STATUS="レビュー否認"
           fi
+          echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
 
       - name: changes status to the linked Issue
         uses: actions-ecosystem/action-add-labels@v1
         with:
-          labels: status:${{ steps.get_issue_status.outputs.issue_id }}
+          labels: status:${{ steps.get_issue_status.outputs.issue_status }}
           issue-number: ${{ steps.get_issue_id.outputs.issue_id }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
