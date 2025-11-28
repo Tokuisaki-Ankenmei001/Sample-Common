@@ -7,30 +7,11 @@ jobs:
   update-issue-on-request-changes:
     runs-on: ubuntu-latest
     # レビューのタイプが 'REQUEST_CHANGES' の場合にのみ実行
-    if: github.event.review.state == 'REQUEST_CHANGES'
     permissions:
       contents: read
       issues: write # Issue を更新するための権限が必要
       pull-requests: read
     steps:
       - name: Extract Issue number from PR body
-        id: get_issue_id
-        run: |
-          # PR本文から #123 の形式のIssue番号を抽出する（正規表現は適宜調整してください）
-          PR_BODY="${{ github.event.pull_request.body }}"
-          ISSUE_ID=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
-          if [ -n "$ISSUE_ID" ]; then
-            echo "::set-output name=issue_id::$ISSUE_ID"
-            echo "Found Issue ID: $ISSUE_ID"
-          else
-            echo "::error::No Issue ID found in PR body. Please link an issue (e.g., #123)."
-            exit 1
-          fi
-
-      - name: Add status requested changes label to the linked Issue
-        uses: actions-ecosystem/action-add-labels@v1
-        with:
-          labels: status:"レビュー否認"
-          issue-number: ${{ steps.get_issue_id.outputs.issue_id }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        echo github.event.review.state
 
