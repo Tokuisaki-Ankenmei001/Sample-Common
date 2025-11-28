@@ -43,7 +43,7 @@ jobs:
         with:
             github.rest.issues.update({
               issue_number:${{ steps.get_issue_id.outputs.issue_id }},
-              owner:context.repo.owner,
-              repo:context.repo.repo,
-              state:"Test"
+              owner:" horie-mobile",
+              repo:" Tokuisaki-Ankenmei001/Sample-Common",
+              state:" Test"
             });
