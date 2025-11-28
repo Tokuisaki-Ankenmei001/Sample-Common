@@ -12,7 +12,6 @@ jobs:
       issues: write # Issue を更新するための権限が必要
       pull-requests: read
     steps:
-      - name: Determine and log the branch name
-        run: |
-          echo "Review Status is : " github.event.review.state
+      - name: Log review state
+        run: echo "Review state is: ${{ github.event.review.state }}"
 
