@@ -1,4 +1,4 @@
-name: PullRequestApprove
+name: PullRequestReviewResult
 
 on:
   pull_request_review:
@@ -7,8 +7,8 @@ on:
 jobs:
   update-issue-on-request-changes:
     runs-on: ubuntu-latest
-    # レビューのタイプが 'approved' の場合にのみ実行
-    if: github.event.review.state == 'approved'
+    # レビューのタイプが 'approved'、'changes_requested' の場合にのみ実行
+    if: ${{ github.event.review.state == 'approved' || github.event.review.state == 'changes_requested' }}
     permissions:
       contents: read
       issues: write # Issue を更新するための権限が必要
@@ -28,9 +28,18 @@ jobs:
             exit 1
           fi
 
-      - name: Add status requested changes label to the linked Issue
+      - name: Extract Issue number from PR body
+        id: get_issue_status
+        run: |
+          if github.event.review.state == 'approved'; then
+            ISSUE_STATUS="レビュー承認"
+          else
+            ISSUE_STATUS="レビュー否認"
+          fi
+
+      - name: changes status to the linked Issue
         uses: actions-ecosystem/action-add-labels@v1
         with:
-          labels: status:"レビュー承認"
+          labels: status:${{ steps.get_issue_status.outputs.issue_id }}
           issue-number: ${{ steps.get_issue_id.outputs.issue_id }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
