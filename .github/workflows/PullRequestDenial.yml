@@ -13,5 +13,5 @@ jobs:
       pull-requests: read
     steps:
       - name: Log review state
-        run: echo "Review state is: ${{ github.event.review.state }}"
+        run: echo "Review state is  ${{ github.event.review.state }}"
 
