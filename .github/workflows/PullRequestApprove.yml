@@ -1,0 +1,41 @@
+name: Handle PR Review Status
+
+on:
+  pull_request_review:
+    types: [approved]
+
+jobs:
+  update-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get issue number from PR body
+        id: get_issue_number
+        run: |
+          # PRの本文から "Closes #123" や "Fixes #123" の形式でIssue番号を抽出する
+          ISSUE_NUMBER=$(echo "${{ github.event.pull_request.body }}" | grep -oP '(?i)(close[sd]?|fixe[sd]?|resolve[sd]?) #\K[0-9]+' | tr -d '\n')
+          if [ -n "$ISSUE_NUMBER" ]; then
+            echo "::set-output name=issue_number::$ISSUE_NUMBER"
+          else
+            echo "No linked issue found in the PR body."
+            exit 0
+          fi
+
+      - name: Add 'approved' label to the linked issue
+        if: steps.get_issue_number.outputs.issue_number != ''
+        uses: peter-evans/create-or-update-comment@v2 # またはGitHub CLIを使用
+        with:
+          issue-number: ${{ steps.get_issue_number.outputs.issue_number }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            関連するプルリクエストが承認されました。
+          # ここではコメントを追加する例だが、APIを使ってラベル操作などを行う
+
+      # GitHub CLI を使ってラベルを追加する例
+      - name: Add label using GitHub CLI
+        if: steps.get_issue_number.outputs.issue_number != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 実際にはここで Issue のラベルを追加/削除するコマンドを実行する
+          # 例: gh issue edit ${{ steps.get_issue_number.outputs.issue_number }} --add-label "approved"
+          echo "gh issue edit ${{ steps.get_issue_number.outputs.issue_number }} --add-label \"approved\""
