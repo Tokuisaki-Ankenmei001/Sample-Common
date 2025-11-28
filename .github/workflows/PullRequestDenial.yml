@@ -34,3 +34,4 @@ jobs:
           labels: status:"レビュー否認"
           issue-number: ${{ steps.get_issue_id.outputs.issue_id }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
