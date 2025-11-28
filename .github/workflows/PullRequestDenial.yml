@@ -28,9 +28,9 @@ jobs:
             exit 1
           fi
 
-      - name: Add 'status: requested changes' label to the linked Issue
+      - name: Add status requested changes label to the linked Issue
         uses: actions-ecosystem/action-add-labels@v1
         with:
-          labels: status: レビュー否認
+          labels: status: 'レビュー否認'
           issue-number: ${{ steps.get_issue_id.outputs.issue_id }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
