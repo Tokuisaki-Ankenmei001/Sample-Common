@@ -2,40 +2,35 @@ name: PullRequestApprove
 
 on:
   pull_request_review:
-    types: [approved]
-
+    types:
+      - submitted
 jobs:
-  update-issue:
+  update-issue-on-request-changes:
     runs-on: ubuntu-latest
+    # レビューのタイプが 'approved' の場合にのみ実行
+    if: github.event.review.state == 'approved'
+    permissions:
+      contents: read
+      issues: write # Issue を更新するための権限が必要
+      pull-requests: read
     steps:
-      - name: Get issue number from PR body
-        id: get_issue_number
+      - name: Extract Issue number from PR body
+        id: get_issue_id
         run: |
-          # PRの本文から "Closes #123" や "Fixes #123" の形式でIssue番号を抽出する
-          ISSUE_NUMBER=$(echo "${{ github.event.pull_request.body }}" | grep -oP '(?i)(close[sd]?|fixe[sd]?|resolve[sd]?) #\K[0-9]+' | tr -d '\n')
-          if [ -n "$ISSUE_NUMBER" ]; then
-            echo "::set-output name=issue_number::$ISSUE_NUMBER"
+          # PR本文から #123 の形式のIssue番号を抽出する（正規表現は適宜調整してください）
+          PR_BODY="${{ github.event.pull_request.body }}"
+          ISSUE_ID=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
+          if [ -n "$ISSUE_ID" ]; then
+            echo "::set-output name=issue_id::$ISSUE_ID"
+            echo "Found Issue ID: $ISSUE_ID"
           else
-            echo "No linked issue found in the PR body."
-            exit 0
+            echo "::error::No Issue ID found in PR body. Please link an issue (e.g., #123)."
+            exit 1
           fi
 
-      - name: Add 'approved' label to the linked issue
-        if: steps.get_issue_number.outputs.issue_number != ''
-        uses: peter-evans/create-or-update-comment@v2 # またはGitHub CLIを使用
+      - name: Add status requested changes label to the linked Issue
+        uses: actions-ecosystem/action-add-labels@v1
         with:
-          issue-number: ${{ steps.get_issue_number.outputs.issue_number }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          body: |
-            関連するプルリクエストが承認されました。
-          # ここではコメントを追加する例だが、APIを使ってラベル操作などを行う
-
-      # GitHub CLI を使ってラベルを追加する例
-      - name: Add label using GitHub CLI
-        if: steps.get_issue_number.outputs.issue_number != ''
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # 実際にはここで Issue のラベルを追加/削除するコマンドを実行する
-          # 例: gh issue edit ${{ steps.get_issue_number.outputs.issue_number }} --add-label "approved"
-          echo "gh issue edit ${{ steps.get_issue_number.outputs.issue_number }} --add-label \"approved\""
+          labels: status:"レビュー承認"
+          issue-number: ${{ steps.get_issue_id.outputs.issue_id }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
