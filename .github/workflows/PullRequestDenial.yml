@@ -1,8 +1,7 @@
 name: PullRequestDenial
 
 on:
-  pull_request_review:
-    types: [edited]
+  pull_request_review
 
 jobs:
   update-issue-on-request-changes:
