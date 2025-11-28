@@ -12,6 +12,7 @@ jobs:
       issues: write # Issue を更新するための権限が必要
       pull-requests: read
     steps:
-      - name: Extract Issue number from PR body
-        echo github.event.review.state
+      - name: Determine and log the branch name
+        run: |
+          echo "GitHub Actions Ref: $GITHUB_REF"
 
