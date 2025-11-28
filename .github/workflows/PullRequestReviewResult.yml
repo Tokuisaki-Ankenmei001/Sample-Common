@@ -39,8 +39,16 @@ jobs:
           echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
 
       - name: changes status to the linked Issue
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions/github-script@v6
         with:
+            github.rest.issues.update({
+              issue_number:${{ steps.get_issue_id.outputs.issue_id }},
+              owner:context.repo.owner,
+              repo:context.repo.repo,
+              state:${{ steps.get_issue_status.outputs.issue_status }}
+            });
+          
+          
           status: ${{ steps.get_issue_status.outputs.issue_status }}
           number: ${{ steps.get_issue_id.outputs.issue_id }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
