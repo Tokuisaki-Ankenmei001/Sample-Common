@@ -42,8 +42,8 @@ jobs:
         uses: actions/github-script@v6
         with:
             github.rest.issues.update({
+              owner:context.repo.owner,
+              repo:context.repo.repo,
               issue_number:${{ steps.get_issue_id.outputs.issue_id }},
-              owner:" horie-mobile",
-              repo:" Tokuisaki-Ankenmei001/Sample-Common",
-              state:" Test"
+              state:${{ steps.get_issue_status.outputs.issue_status }}
             });
