@@ -43,8 +43,8 @@ jobs:
         uses: actions/github-script@v6
         with:
             github.rest.issues.update({
-              owner:context.repo.owner,
-              repo:context.repo.repo,
+              owner:${{ github.repository_owner }},
+              repo:${{ github.repository }},
               issue_number:${{ steps.get_issue_id.outputs.issue_id }},
               state:${{ steps.get_issue_status.outputs.issue_status }}
             });
