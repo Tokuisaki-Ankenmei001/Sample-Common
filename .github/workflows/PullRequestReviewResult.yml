@@ -31,12 +31,13 @@ jobs:
       - name: Extract Issue number from PR body
         id: get_issue_status
         run: |
-          if github.event.review.state == 'approved'; then
+          if ${{ github.event.review.state == 'approved' }}; then
             ISSUE_STATUS="レビュー承認"
           else
             ISSUE_STATUS="Denial"
           fi
           echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
+          echo "Set Status : $ISSUE_STATUS"
 
       - name: changes status to the linked Issue
         uses: actions/github-script@v6
