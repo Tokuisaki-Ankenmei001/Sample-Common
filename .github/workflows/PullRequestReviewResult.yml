@@ -34,7 +34,7 @@ jobs:
           if github.event.review.state == 'approved'; then
             ISSUE_STATUS="レビュー承認"
           else
-            ISSUE_STATUS="レビュー否認"
+            ISSUE_STATUS="Denial"
           fi
           echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
 
