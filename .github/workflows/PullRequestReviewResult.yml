@@ -37,7 +37,9 @@ jobs:
             ISSUE_STATUS="Denial"
           fi
           echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
-          echo "Set Status : $ISSUE_STATUS"
+          echo "Set Status : $ISSUE_STATUS"          
+          echo "owner : ${{ github.repository_owner }}"
+          echo "repo : ${{ github.repository }}"
 
       - name: changes status to the linked Issue
         uses: actions/github-script@v6
