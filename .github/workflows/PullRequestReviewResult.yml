@@ -12,7 +12,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER: ${{ github.repository_owner }} # オーナー名 (ユーザー名または組織名)
-          PROJECT_NUMBER: 5                     # ここを実際のプロジェクト番号に置き換えてください
+          PROJECT_NUMBER: 3                     # ここを実際のプロジェクト番号に置き換えてください
         run: |
           # オーナーの種類に応じてクエリを切り替えます
           # 組織プロジェクトの場合
