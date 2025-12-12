@@ -11,7 +11,7 @@ jobs:
     if: ${{ github.event.review.state == 'approved' || github.event.review.state == 'changes_requested' }}
     permissions:
       contents: read
-      issues: write # Issue を更新するための権限が必要
+      issues: read
       pull-requests: read
     steps:
       - name: Extract Issue number from PR body
@@ -28,7 +28,7 @@ jobs:
             exit 1
           fi
 
-      - name: Update Project Custom Field
+      - name: Set Project Custom Field
         id: get_status
         run: |
           if ${{ github.event.review.state == 'approved' }}; then
@@ -46,3 +46,74 @@ jobs:
             exit 1
           fi
 
+      - name: Update associated Issue Status in GitHub Project
+        if: steps.get_issue_number.outputs.issue_number != '' && steps.get_status.outputs.issue_status != ''
+        env:
+          # Projectsへの書き込み権限を持つPATをSecretsに登録し、ここで使用
+          GH_TOKEN: ${{ secrets.MY_PAT }}
+          ISSUE_NUMBER: ${{ steps.get_issue_number.outputs.issue_number }}
+          ORG_NAME: ${{ github.repository_owner }}                         # Organization名 (User Projectsの場合はユーザー名)
+          PROJECT_NUMBER: 3                                                # Projectsの番号 (URL末尾の番号)
+          FIELD_NAME: Status                                               # 更新したいカスタムフィールド名
+          NEW_STATUS_VALUE: ${{ steps.get_status.outputs.issue_status }}   # 設定したい新しい値
+        run: |
+          # 1. ProjectsのNode IDを取得
+          PROJECT_ID=$(gh api graphql -f query='
+            query {
+              organization(login: "${{ env.ORG_NAME }}") {
+                projectV2(number: ${{ env.PROJECT_NUMBER }}) {
+                  id
+                }
+              }
+            }
+          ' --jq '.data.organization.projectV2.id')
+          # User Projectsの場合はorganizationをuserに変更
+
+          # 2. カスタムフィールドのIDとオプションIDを取得
+          FIELD_DATA=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  field(name: "${{ env.FIELD_NAME }}") {
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      options {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ' -v projectId=$PROJECT_ID --jq '.data.node.field')
+
+          FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.id')
+          OPTION_ID=$(echo "$FIELD_DATA" | jq -r --argjson val "${{ toJson(env.NEW_STATUS_VALUE) }}" '.options[] | select(.name == $val) | .id')
+
+          # 3. IssueのNode IDを取得
+          ISSUE_ID=$(gh api graphql -f query='
+            query {
+              repository(owner: "${{ env.ORG_NAME }}", name: "${{ github.event.repository.name }}") {
+                issue(number: ${{ env.ISSUE_NUMBER }}) {
+                  id
+                }
+              }
+            }
+          ' --jq '.data.repository.issue.id')
+
+          # 4. Projectsアイテムのフィールド値を更新
+          gh api graphql -f query='
+            mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: ProjectV2SingleSelectFieldOptionValueInput!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $projectId,
+                itemId: $itemId,
+                fieldId: $fieldId,
+                value: $value
+              }) {
+                projectV2Item {
+                  id
+                }
+              }
+            }
+          ' -v projectId=$PROJECT_ID -v itemId=$ISSUE_ID -f fieldId=$FIELD_ID -f value='{"singleSelectOptionId": "'"$OPTION_ID"'"}'
