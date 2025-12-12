@@ -24,7 +24,7 @@ jobs:
             echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
             echo "Found Issue ID: $ISSUE_NUMBER"
           else
-            echo "::error::No Issue ID found in PR body. Please link an issue (e.g., #123)."
+            echo "::error::No Issue NUMBER found in PR body. Please link an issue (e.g., #123)."
             exit 1
           fi
 
@@ -38,8 +38,15 @@ jobs:
           else
             ISSUE_STATUS="レビュー依頼"
           fi
-          echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
-          echo "Found Issue STATUS: $ISSUE_STATUS"
+          if [ -n "$ISSUE_STATUS ]; then
+            echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
+            echo "Found Issue STATUS: $ISSUE_STATUS"
+          else
+            echo "::error::No Issue STATUS found in Review State. Please check state."
+            exit 1
+          fi
+
+          
 
       - name: changes status to the linked Issue
         if: steps.get_issue_number.outputs.issue_number != ''
