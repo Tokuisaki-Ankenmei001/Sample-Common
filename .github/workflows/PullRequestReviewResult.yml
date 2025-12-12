@@ -38,8 +38,8 @@ jobs:
           else
             ISSUE_STATUS="レビュー依頼"
           fi
-            echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
-            echo "Found Issue STATUS: $ISSUE_STATUS"
+          echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
+          echo "Found Issue STATUS: $ISSUE_STATUS"
 
       - name: changes status to the linked Issue
         if: steps.get_issue_number.outputs.issue_number != ''
