@@ -15,38 +15,46 @@ jobs:
       pull-requests: read
     steps:
       - name: Extract Issue number from PR body
-        id: get_issue_id
+        id: get_issue_number
         run: |
           # PR本文から #123 の形式のIssue番号を抽出する（正規表現は適宜調整してください）
           PR_BODY="${{ github.event.pull_request.body }}"
           ISSUE_ID=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
-          if [ -n "$ISSUE_ID" ]; then
-            echo "issue_id=$ISSUE_ID" >> $GITHUB_OUTPUT
-            echo "Found Issue ID: $ISSUE_ID"
+          if [ -n "$ISSUE_NUMBER" ]; then
+            echo "::set-output name=number::$ISSUE_NUMBER"
+            echo "Found Issue ID: $ISSUE_NUMBER"
           else
             echo "::error::No Issue ID found in PR body. Please link an issue (e.g., #123)."
             exit 1
           fi
 
-      - name: Extract Issue number from PR body
-        id: get_issue_status
+      - name: Update Project Custom Field
+        id: update_status
         run: |
           if ${{ github.event.review.state == 'approved' }}; then
             ISSUE_STATUS="レビュー承認"
+          elseif ${{ github.event.review.state == 'Request Changes' }}; then
+            ISSUE_STATUS="レビュー否認"
           else
-            ISSUE_STATUS="Denial"
+            ISSUE_STATUS="レビュー依頼"
           fi
           echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
           echo "Set Status : $ISSUE_STATUS"          
-          echo "owner : ${{ github.repository_owner }}"
-          echo "repo : ${{ github.repository }}"
+          echo "::set-output name=status::$ISSUE_STATUS"
+          echo "Found Issue STATUS: $ISSUE_STATUS"
 
       - name: changes status to the linked Issue
-        uses: actions/github-script@v6
+        if: steps.get_issue_number.outputs.number != ''
+        uses: titoportas/update-project-fields@v0.4.0
         with:
-            github.rest.issues.update({
-              owner:${{ github.repository_owner }},
-              repo:${{ github.repository }},
-              issue_number:${{ steps.get_issue_id.outputs.issue_id }},
-              state:${{ steps.get_issue_status.outputs.issue_status }}
-            });
+          # GitHub ProjectsのURL (例: github.com<YOUR-ORG>/projects/<PROJECT-NUMBER>) の末尾の番号
+          project-url: 'github.com<YOUR-ORG-NAME>/projects/<YOUR-PROJECT-NUMBER>'
+          
+          # 更新対象のアイテムIDを特定するための情報
+          # extracted-item-id: '' # issue-node-id または content-node-id が必要
+          issue-number: ${{ steps.get_issue_number.outputs.number }}
+          github-token: ${{ secrets.GH_PROJECT_UPDATE_TOKEN }} # Projects更新権限のあるトークンを使用
+
+          # 更新したいフィールド名と新しい値
+          field-name: 'Status'
+          field-value: :${{ steps.get_issue_status.outputs.issue_status }}
