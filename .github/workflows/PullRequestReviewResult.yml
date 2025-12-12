@@ -33,7 +33,7 @@ jobs:
         run: |
           if ${{ github.event.review.state == 'approved' }}; then
             ISSUE_STATUS="レビュー承認"
-          elseif ${{ github.event.review.state == 'Request Changes' }}; then
+          elseif ${{ github.event.review.state == 'changes_requested' }}; then
             ISSUE_STATUS="レビュー否認"
           else
             ISSUE_STATUS="レビュー依頼"
@@ -42,7 +42,7 @@ jobs:
             echo "Found Issue STATUS: $ISSUE_STATUS"
 
       - name: changes status to the linked Issue
-        if: steps.get_issue_number.outputs.number != ''
+        if: steps.get_issue_number.outputs.issue_number != ''
         uses: actions/github-script@v6
         with:
           # GitHub ProjectsのURL (例: github.com<YOUR-ORG>/projects/<PROJECT-NUMBER>) の末尾の番号
