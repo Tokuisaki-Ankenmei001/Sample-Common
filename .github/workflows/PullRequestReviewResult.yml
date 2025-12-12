@@ -38,8 +38,6 @@ jobs:
           else
             ISSUE_STATUS="レビュー依頼"
           fi
-          echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
-          echo "Set Status : $ISSUE_STATUS"          
           echo "::set-output name=status::$ISSUE_STATUS"
           echo "Found Issue STATUS: $ISSUE_STATUS"
 
