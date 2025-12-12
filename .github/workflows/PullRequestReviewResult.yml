@@ -29,7 +29,7 @@ jobs:
           fi
 
       - name: Update Project Custom Field
-        id: update_status
+        id: get_status
         run: |
           if ${{ github.event.review.state == 'approved' }}; then
             ISSUE_STATUS="レビュー承認"
@@ -55,4 +55,4 @@ jobs:
 
           # 更新したいフィールド名と新しい値
           field-name: 'Status'
-          field-value: :${{ steps.get_issue_status.outputs.issue_status }}
+          field-value: :${{ steps.get_status.outputs.issue_status }}
