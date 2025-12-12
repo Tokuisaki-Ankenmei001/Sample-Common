@@ -33,7 +33,7 @@ jobs:
         run: |
           if ${{ github.event.review.state == 'approved' }}; then
             ISSUE_STATUS="レビュー承認"
-          elseif ${{ github.event.review.state == 'changes_requested' }}; then
+          elif ${{ github.event.review.state == 'changes_requested' }}; then
             ISSUE_STATUS="レビュー否認"
           else
             ISSUE_STATUS="レビュー依頼"
@@ -45,8 +45,6 @@ jobs:
             echo "::error::No Issue STATUS found in Review State. Please check state."
             exit 1
           fi
-
-          
 
       - name: changes status to the linked Issue
         if: steps.get_issue_number.outputs.issue_number != ''
