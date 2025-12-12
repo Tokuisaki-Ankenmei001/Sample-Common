@@ -21,7 +21,7 @@ jobs:
           PR_BODY="${{ github.event.pull_request.body }}"
           ISSUE_NUMBER=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
           if [ -n "$ISSUE_NUMBER" ]; then
-            echo "::set-output name=number::$ISSUE_NUMBER"
+            echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
             echo "Found Issue ID: $ISSUE_NUMBER"
           else
             echo "::error::No Issue ID found in PR body. Please link an issue (e.g., #123)."
@@ -38,8 +38,8 @@ jobs:
           else
             ISSUE_STATUS="レビュー依頼"
           fi
-          echo "::set-output name=status::$ISSUE_STATUS"
-          echo "Found Issue STATUS: $ISSUE_STATUS"
+            echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
+            echo "Found Issue STATUS: $ISSUE_STATUS"
 
       - name: changes status to the linked Issue
         if: steps.get_issue_number.outputs.number != ''
@@ -50,7 +50,7 @@ jobs:
           
           # 更新対象のアイテムIDを特定するための情報
           # extracted-item-id: '' # issue-node-id または content-node-id が必要
-          issue-number: ${{ steps.get_issue_number.outputs.number }}
+          issue-number: ${{ steps.get_issue_number.outputs.issue_number }}
           github-token: ${{ secrets.GH_PROJECT_UPDATE_TOKEN }} # Projects更新権限のあるトークンを使用
 
           # 更新したいフィールド名と新しい値
