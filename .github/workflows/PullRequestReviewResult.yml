@@ -5,42 +5,44 @@ on:
     types:
       - submitted
 jobs:
-  get_project_id_job:
+  update-issue-on-request-changes:
     runs-on: ubuntu-latest
+    # レビューのタイプが 'approved'、'changes_requested' の場合にのみ実行
+    if: ${{ github.event.review.state == 'approved' || github.event.review.state == 'changes_requested' }}
+    permissions:
+      contents: read
+      issues: write # Issue を更新するための権限が必要
+      pull-requests: read
     steps:
-      - name: Get Project Node ID
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OWNER: ${{ github.repository_owner }} # オーナー名 (ユーザー名または組織名)
-          PROJECT_NUMBER: 3                     # ここを実際のプロジェクト番号に置き換えてください
+      - name: Extract Issue number from PR body
+        id: get_issue_number
         run: |
-          # オーナーの種類に応じてクエリを切り替えます
-          # 組織プロジェクトの場合
-          PROJECT_ID=$(gh api graphql -f query='
-            query($owner: String!, $number: Int!) {
-              organization(login: $owner) {
-                projectV2(number: $number) {
-                  id
-                }
-              }
-            }' -f owner=$OWNER -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
-          
-          # 個人プロジェクトの場合は上記クエリの 'organization' を 'user' に変更します
-          if [ -z "$PROJECT_ID" ]; then
-             PROJECT_ID=$(gh api graphql -f query='
-               query($owner: String!, $number: Int!) {
-                 user(login: $owner) {
-                   projectV2(number: $number) {
-                     id
-                   }
-                 }
-               }' -f owner=$OWNER -F number=$PROJECT_NUMBER --jq '.data.user.projectV2.id')
+          # PR本文から #123 の形式のIssue番号を抽出する（正規表現は適宜調整してください）
+          PR_BODY="${{ github.event.pull_request.body }}"
+          ISSUE_NUMBER=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
+          if [ -n "$ISSUE_NUMBER" ]; then
+            echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+            echo "Found Issue ID: $ISSUE_NUMBER"
+          else
+            echo "::error::No Issue NUMBER found in PR body. Please link an issue (e.g., #123)."
+            exit 1
           fi
 
-          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
-          echo "Project Node ID is: $PROJECT_ID"
-          
-      - name: Use Project ID in subsequent steps
+      - name: Update Project Custom Field
+        id: get_status
         run: |
-          echo "The project ID is now available as an environment variable: ${{ env.PROJECT_ID }}"
-          # ここで ${{ env.PROJECT_ID }} を使って他のgh CLIコマンドなどを実行できます
+          if ${{ github.event.review.state == 'approved' }}; then
+            ISSUE_STATUS="レビュー承認"
+          elif ${{ github.event.review.state == 'changes_requested' }}; then
+            ISSUE_STATUS="レビュー否認"
+          else
+            ISSUE_STATUS="レビュー依頼"
+          fi
+          if [ -n "$ISSUE_STATUS" ]; then
+            echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
+            echo "Found Issue STATUS: $ISSUE_STATUS"
+          else
+            echo "::error::No Issue STATUS found in Review State. Please check state."
+            exit 1
+          fi
+
