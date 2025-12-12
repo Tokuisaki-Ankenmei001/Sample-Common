@@ -45,7 +45,7 @@ jobs:
 
       - name: changes status to the linked Issue
         if: steps.get_issue_number.outputs.number != ''
-        uses: titoportas/update-project-fields@v0.4.0
+        uses: actions/github-script@v6
         with:
           # GitHub ProjectsのURL (例: github.com<YOUR-ORG>/projects/<PROJECT-NUMBER>) の末尾の番号
           project-url: 'github.com<YOUR-ORG-NAME>/projects/<YOUR-PROJECT-NUMBER>'
