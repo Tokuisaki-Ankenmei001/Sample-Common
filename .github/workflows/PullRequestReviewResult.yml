@@ -19,7 +19,7 @@ jobs:
         run: |
           # PR本文から #123 の形式のIssue番号を抽出する（正規表現は適宜調整してください）
           PR_BODY="${{ github.event.pull_request.body }}"
-          ISSUE_ID=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
+          ISSUE_NUMBER=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
           if [ -n "$ISSUE_NUMBER" ]; then
             echo "::set-output name=number::$ISSUE_NUMBER"
             echo "Found Issue ID: $ISSUE_NUMBER"
