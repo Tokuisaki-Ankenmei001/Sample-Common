@@ -7,6 +7,8 @@ on:
 jobs:
   update-issue-on-request-changes:
     runs-on: ubuntu-latest
+    permissions:
+      repository-projects: write
     # レビューのタイプが 'approved'、'changes_requested' の場合にのみ実行
     if: ${{ github.event.review.state == 'approved' || github.event.review.state == 'changes_requested' }}
     steps:
