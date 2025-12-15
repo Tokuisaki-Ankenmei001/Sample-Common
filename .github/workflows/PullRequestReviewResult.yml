@@ -56,9 +56,9 @@ jobs:
         run: |
           # gh project item-edit $PROJECT_NUMBER --owner $ORG --field-name $FIELD_NAME --value $NEW_VALUE --issue $ISSUE_NUMBER
           gh api graphql -f query='
-            query($owner: String!, $projectNumber: Int!) {
-              organization(login: $owner) {
-                projectV2(number: $projectNumber) {
+            query(Tokuisaki-Ankenmei001: String!, 3: Int!) {
+              organization(login: Tokuisaki-Ankenmei001) {
+                projectV2(number: 3) {
                   fields(first: 20) {
                     nodes {
                       ... on ProjectV2SingleSelectField {
@@ -74,4 +74,4 @@ jobs:
                 }
               }
             }
-            ' -v owner='Tokuisaki-Ankenmei001' projectNumber=3
+        '
