@@ -9,10 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     # レビューのタイプが 'approved'、'changes_requested' の場合にのみ実行
     if: ${{ github.event.review.state == 'approved' || github.event.review.state == 'changes_requested' }}
-    permissions:
-      contents: write
-      issues: write # Issue を更新するための権限が必要
-      pull-requests: read
     steps:
       - name: Extract Issue number from PR body
         id: get_issue_number
@@ -22,7 +18,7 @@ jobs:
           ISSUE_NUMBER=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
           if [ -n "$ISSUE_NUMBER" ]; then
             echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
-            echo "Found Issue ID: $ISSUE_NUMBER"
+            echo "Found Issue Number: $ISSUE_NUMBER"
           else
             echo "::error::No Issue NUMBER found in PR body. Please link an issue (e.g., #123)."
             exit 1
@@ -48,94 +44,12 @@ jobs:
 
       - name: changes status to the linked Issue
         if: steps.get_issue_number.outputs.issue_number != '' && steps.get_status.outputs.issue_status != ''
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.MY_PAT }} # PATをSecretsに設定
-          script: |
-            const issue_number = `${{ steps.get_issue_number.outputs.issue_number }}`;
-            const owner = `${{ github.repository_owner }}`;
-            const repo = `${{ github.event.repository.name }}`;
-
-            // 1. IssueのノードID（GraphQL ID）を取得
-            const get_issue_query = `
-              query getIssue($owner: String!, $repo: String!, $issue_number: Int!) {
-                repository(owner: $owner, name: $repo) {
-                  issue(number: $issue_number) {
-                    id
-                    projectsV2(first: 1) {
-                      nodes {
-                        id
-                        fields(first: 20) {
-                          nodes {
-                            ... on ProjectV2FieldCommon {
-                              id
-                              name
-                            }
-                            ... on ProjectV2SingleSelectField {
-                              id
-                              name
-                              options {
-                                id
-                                name
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            `;
-            const issue_data = await github.graphql(get_issue_query, {
-              owner,
-              repo,
-              issue_number: parseInt(issue_number),
-            });
-
-            const issue_id = issue_data.repository.issue.id;
-            const project = issue_data.repository.issue.projectsV2.nodes[0];
-            if (!project) {
-              console.log("Issue is not linked to a project, skipping.");
-              return;
-            }
-            const project_id = project.id;
-
-            // 2. カスタムフィールドと「否認」オプションのIDを見つける
-            const status_field = project.fields.nodes.find(field => field.name === 'Status');
-            if (!status_field) {
-              console.log("Status field not found, skipping.");
-              return;
-            }
-            const status_field_id = status_field.id;
-            const rejected_option = status_field.options.find(option => option.name === steps.get_status.outputs.issue_status);
-            if (!rejected_option) {
-              console.log("Rejected option not found in status field, skipping.");
-              return;
-            }
-            const rejected_option_id = rejected_option.id;
-
-
-            // 3. Issueのカスタムフィールドの値を更新
-            const update_field_mutation = `
-              mutation updateProjectItemField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: String!) {
-                updateProjectV2ItemFieldValue(input: {
-                  projectId: $projectId,
-                  itemId: $itemId,
-                  fieldId: $fieldId,
-                  value: {
-                    singleSelectOptionId: $value
-                  }
-                }) {
-                  projectV2Item {
-                    id
-                  }
-                }
-              }
-            `;
-            await github.graphql(update_field_mutation, {
-              projectId: project_id,
-              itemId: issue_id,
-              fieldId: status_field_id,
-              value: rejected_option_id,
-            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 環境変数で必要な情報を定義
+          ORG: ${{ github.repository_owner }} # 組織名 (組織プロジェクトの場合)
+          PROJECT_NUMBER: 3 # プロジェクト番号
+          FIELD_NAME: "Status" # 更新したいカスタムフィールド名
+          NEW_VALUE: steps.get_status.outputs.issue_status # 設定したい値
+        run: |
+          gh project item-edit $PROJECT_NUMBER --owner $ORG --field-name $FIELD_NAME --value steps.get_status.outputs.issue_status --issue steps.get_issue_number.outputs.issue_number
