@@ -54,7 +54,7 @@ jobs:
           ISSUE_NUMBER: ${{ steps.get_issue_number.outputs.issue_number }}
 
         run: |
-          #gh project item-edit $PROJECT_NUMBER --owner $ORG --field-name $FIELD_NAME --value $NEW_VALUE --issue $ISSUE_NUMBER
+          # gh project item-edit $PROJECT_NUMBER --owner $ORG --field-name $FIELD_NAME --value $NEW_VALUE --issue $ISSUE_NUMBER
           gh api graphql -f query='
             query($owner: String!, $projectNumber: Int!) {
               organization(login: $owner) {
