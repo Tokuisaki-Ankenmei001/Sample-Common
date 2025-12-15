@@ -47,7 +47,7 @@ jobs:
       - name: changes status to the linked Issue
         if: ${{ steps.get_issue_number.outputs.issue_number != '' }} && ${{ steps.get_status.outputs.issue_status != '' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_PAT20251215 }}
+          GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
           # 環境変数で必要な情報を定義
           ORG: ${{ github.repository_owner }} # 組織名 (組織プロジェクトの場合)
           PROJECT_NUMBER: 3 # プロジェクト番号
