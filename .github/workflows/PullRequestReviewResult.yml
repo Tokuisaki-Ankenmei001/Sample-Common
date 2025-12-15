@@ -43,13 +43,15 @@ jobs:
           fi
 
       - name: changes status to the linked Issue
-        if: steps.get_issue_number.outputs.issue_number != '' && steps.get_status.outputs.issue_status != ''
+        if: ${{ steps.get_issue_number.outputs.issue_number != '' }} && ${{ steps.get_status.outputs.issue_status != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # 環境変数で必要な情報を定義
           ORG: ${{ github.repository_owner }} # 組織名 (組織プロジェクトの場合)
           PROJECT_NUMBER: 3 # プロジェクト番号
           FIELD_NAME: "Status" # 更新したいカスタムフィールド名
-          NEW_VALUE: steps.get_status.outputs.issue_status # 設定したい値
+          NEW_VALUE: ${{ steps.get_status.outputs.issue_status }} # 設定したい値
+          ISSUE_NUMBER: ${{ steps.get_issue_number.outputs.issue_number }}
+
         run: |
-          gh project item-edit $PROJECT_NUMBER --owner $ORG --field-name $FIELD_NAME --value steps.get_status.outputs.issue_status --issue steps.get_issue_number.outputs.issue_number
+          gh project item-edit $PROJECT_NUMBER --owner $ORG --field-name $FIELD_NAME --value $NEW_VALUE --issue $ISSUE_NUMBER
