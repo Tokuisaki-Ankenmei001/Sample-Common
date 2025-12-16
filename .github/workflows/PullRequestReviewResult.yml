@@ -56,4 +56,4 @@ jobs:
           ISSUE_NUMBER: ${{ steps.get_issue_number.outputs.issue_number }}
 
         run: |
-          gh project item-edit --id 'I_kwDOQdLklM7d0tnP' --field-id 'PVTSSF_lADODp9rL84BJGxGzg5XjHw' --project-id 'PVT_kwDODp9rL84BJGxG' --single-select-option-id 'cd31b70e'
+          gh project item-edit --id 'PVTI_lADODp9rL84BJGxGzgie9yU' --field-id 'PVTSSF_lADODp9rL84BJGxGzg5XjHw' --project-id 'PVT_kwDODp9rL84BJGxG' --single-select-option-id 'cd31b70e'
