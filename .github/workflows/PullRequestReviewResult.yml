@@ -29,8 +29,6 @@ jobs:
       - name: Extract Issue Id from Issue No
         id: get_issue_id
         run: |
-          gh api graphql -F owner='Tokuisaki-Ankenmei001' -F repo='Sample-Common' -F number=${{ steps.get_issue_number.outputs.issue_number }} -f query='
-
           orga='Tokuisaki-Ankenmei001'
           repo='Sample-Common'
           numb=${{ steps.get_issue_number.outputs.issue_number }}
