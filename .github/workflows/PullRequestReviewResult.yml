@@ -29,7 +29,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          orga="Tokuisaki-Ankenmei001"
+          orga=${{ github.repository_owner }}
           repo="Sample-Common"
           numb=${{ steps.get_issue_number.outputs.issue_number }}
           QUERY='query($orga: String!, $repo: String!, $numb: Int!) { repository(owner: $orga, name: $repo) { issue(number: $numb) { id projectItems(first:20) { nodes { id } } } } } '
