@@ -30,11 +30,11 @@ jobs:
         id: get_status
         run: |
           if ${{ github.event.review.state == 'approved' }}; then
-            ISSUE_STATUS="レビュー承認"
+            ISSUE_STATUS="aec7d9c6" # 承認
           elif ${{ github.event.review.state == 'changes_requested' }}; then
-            ISSUE_STATUS="レビュー否認"
+            ISSUE_STATUS="cd31b70e" # 否認
           else
-            ISSUE_STATUS="レビュー依頼"
+            ISSUE_STATUS="c90d9d31" # 依頼
           fi
           if [ -n "$ISSUE_STATUS" ]; then
             echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
@@ -56,4 +56,4 @@ jobs:
           ISSUE_NUMBER: ${{ steps.get_issue_number.outputs.issue_number }}
 
         run: |
-          gh project item-edit --id 'PVTI_lADODp9rL84BJGxGzgie9yU' --field-id 'PVTSSF_lADODp9rL84BJGxGzg5XjHw' --project-id 'PVT_kwDODp9rL84BJGxG' --single-select-option-id 'cd31b70e'
+          gh project item-edit --id 'PVTI_lADODp9rL84BJGxGzgie9yU' --field-id 'PVTSSF_lADODp9rL84BJGxGzg5XjHw' --project-id 'PVT_kwDODp9rL84BJGxG' --single-select-option-id '${{ steps.get_status.outputs.issue_status }}'
