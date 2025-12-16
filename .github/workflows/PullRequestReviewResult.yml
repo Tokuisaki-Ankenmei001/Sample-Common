@@ -29,8 +29,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          orga="${{ github.repository_owner }}"
-          repo="${{ github.repository }}"
+          orga="Tokuisaki-Ankenmei001"
+          repo="Sample-Common"
           numb=${{ steps.get_issue_number.outputs.issue_number }}
           QUERY='query($orga: String!, $repo: String!, $numb: Int!) { repository(owner: $orga, name: $repo) { issue(number: $numb) { id projectItems(first:20) { nodes { id } } } } } '
           RESPONSE=$(gh api graphql -f query="$QUERY" --jq '.data.repository.issue.projectItems.nodes.id')
