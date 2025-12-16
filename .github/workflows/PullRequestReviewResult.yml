@@ -28,6 +28,8 @@ jobs:
 
       - name: Extract Issue Id from Issue No
         id: get_issue_id
+        env:
+          GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
           orga='Tokuisaki-Ankenmei001'
           repo='Sample-Common'
@@ -65,6 +67,5 @@ jobs:
         if: ${{ steps.get_issue_number.outputs.issue_number != '' }} && ${{ steps.get_status.outputs.issue_status != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
-
         run: |
           gh project item-edit --id '${{ steps.get_issue_id.outputs.issue_global_id }}' --field-id 'PVTSSF_lADODp9rL84BJGxGzg5XjHw' --project-id 'PVT_kwDODp9rL84BJGxG' --single-select-option-id '${{ steps.get_status.outputs.issue_status }}'
