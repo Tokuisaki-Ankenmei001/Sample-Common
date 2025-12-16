@@ -33,7 +33,7 @@ jobs:
           repo='Sample-Common'
           numb=${{ steps.get_issue_number.outputs.issue_number }}
           QUERY='query($orga: String!, $repo: String!, $numb: Int!) { repository(owner: $orga, name: $repo) { issue(number: $numb) { id projectItems(first:20) { nodes { id } } } } } '
-          RESPONSE=$(gh api graphql -f query="$QUERY" --jq '.data.repository.issue.projectItems.nodes.id'
+          RESPONSE=$(gh api graphql -f query="$QUERY" --jq '.data.repository.issue.projectItems.nodes.id')
           ISSUE_GLOBAL_ID=$RESPONSE
           if [ -n "$ISSUE_GLOBAL_ID" ]; then
             echo "issue_global_id=$ISSUE_GLOBAL_ID" >> $GITHUB_OUTPUT
