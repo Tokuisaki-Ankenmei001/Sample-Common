@@ -44,9 +44,9 @@ jobs:
             }
           '
           ISSUEID=$(gh api graphql \
-            -f orga='${{ github.repository_owner }}' \
-            -f repo='${{ github.event.repository.name }}' \
-            -f numb=${{ steps.get_issue_number.outputs.issue_number }} \
+            -F orga='${{ github.repository_owner }}' \
+            -F repo='${{ github.event.repository.name }}' \
+            -F numb=${{ steps.get_issue_number.outputs.issue_number }} \
             -f query=$ISSUEID_QUERY \
             --jq '.data.repository.issue.projectItems.nodes[0].id // empty' \
           )
@@ -77,7 +77,7 @@ jobs:
             }
           '
           PROJECTID=$(gh api graphql \
-            -f orga="${{ github.repository_owner }}" \
+            -F orga="${{ github.repository_owner }}" \
             -f query="$PROJECTID_QUERY" \
             | jq --arg target "@horie-mobile's untitled project" '.data.organization.projectsV2.nodes[] | select(.title == $target) | .id // empty'
           )
@@ -112,7 +112,7 @@ jobs:
             }
           '
           FIELDID=$(gh api graphql \
-            -f pjid=${{ steps.get_Project_id.outputs.project_id }} \
+            -F pjid=${{ steps.get_Project_id.outputs.project_id }} \
             -f query="$FIELDID_QUERY" \
             | jq --arg target "Status" '.data.node.fields.nodes[] | select(.name == $target) | .id // empty'
           )
@@ -151,7 +151,7 @@ jobs:
             }
           '
           DENYID=$(gh api graphql \
-            -f pjid=${{ steps.get_Project_id.outputs.project_id }} \
+            -F pjid=${{ steps.get_Project_id.outputs.project_id }} \
             -f query="$DENYID_QUERY" \
             --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー否認\") | .id // empty'
           )
@@ -190,7 +190,7 @@ jobs:
             }
           '
           APPROVEID=$(gh api graphql \
-            -f pjid=${{ steps.get_Project_id.outputs.project_id }} \
+            -F pjid=${{ steps.get_Project_id.outputs.project_id }} \
             -f query="$APPROVEID_QUERY" \
             --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー承認\") | .id // empty'
           )
