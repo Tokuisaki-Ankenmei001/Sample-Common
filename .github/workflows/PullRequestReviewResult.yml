@@ -47,19 +47,7 @@ jobs:
             -F orga='${{ github.repository_owner }}' \
             -F repo='${{ github.event.repository.name }}' \
             -F numb=${{ steps.get_issue_number.outputs.issue_number }} \
-            -f query='
-            query($orga: String!, $repo: String!, $numb: Int!) {
-              repository(owner: $orga, name: $repo) {
-                issue(number: $numb) {
-                  projectItems(first: 1) {
-                    nodes {
-                      id
-                    }
-                  }
-                }
-              }
-            }
-          ' \
+            -f query='$ISSUEID_QUERY' \
             --jq '.data.repository.issue.projectItems.nodes[0].id // empty' \
           )
           ISSUE_GLOBAL_ID=$ISSUEID
