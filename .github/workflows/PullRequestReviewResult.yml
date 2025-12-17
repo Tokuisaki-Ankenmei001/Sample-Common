@@ -43,7 +43,13 @@ jobs:
               }
             }
           '
-          ISSUEID=$(gh api graphql -f orga='${{ github.repository_owner }}' -f repo='${{ github.event.repository.name }}' -f numb=${{ steps.get_issue_number.outputs.issue_number }} -f query=$ISSUEID_QUERY --jq '.data.repository.issue.projectItems.nodes[0].id // empty')
+          ISSUEID=$(gh api graphql \ 
+            -f orga='${{ github.repository_owner }}' \ 
+            -f repo='${{ github.event.repository.name }}' \ 
+            -f numb=${{ steps.get_issue_number.outputs.issue_number }} \ 
+            -f query=$ISSUEID_QUERY \ 
+            --jq '.data.repository.issue.projectItems.nodes[0].id // empty' \
+          )
           ISSUE_GLOBAL_ID=$ISSUEID
           if [ -n "$ISSUE_GLOBAL_ID" ]; then
             echo "issue_global_id=$ISSUE_GLOBAL_ID" >> $GITHUB_OUTPUT
