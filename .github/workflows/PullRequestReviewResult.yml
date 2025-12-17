@@ -47,7 +47,7 @@ jobs:
             -f orga="${{ github.repository_owner }}" \
             -f repo="${{ github.event.repository.name }}" \
             -f numb="${{ steps.get_issue_number.outputs.issue_number }}" \
-            -f query="$ISSUEID_QUERY" \
+            -f query=$ISSUEID_QUERY \
             --jq '.data.repository.issue.projectItems.nodes[0].id // empty'
           )
           ISSUE_GLOBAL_ID=$ISSUEID
