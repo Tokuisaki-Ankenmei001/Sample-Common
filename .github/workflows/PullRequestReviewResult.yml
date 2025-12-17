@@ -43,6 +43,7 @@ jobs:
               }
             }
           '
+          echo "ISSUEID_QUERY is $ISSUEID_QUERY"
           ISSUEID=$(gh api graphql \
             -F orga='${{ github.repository_owner }}' \
             -F repo='${{ github.event.repository.name }}' \
