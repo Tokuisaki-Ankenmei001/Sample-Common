@@ -30,7 +30,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          GRAPHQL_QUERY='
+          ISSUEID_QUERY='
             query($orga: String!, $repo: String!, $numb: Int!) {
               repository(owner: $orga, name: $repo) {
                 issue(number: $numb) {
@@ -47,8 +47,7 @@ jobs:
             -f orga="${{ github.repository_owner }}" \
             -f repo="${{ github.event.repository.name }}" \
             -f numb=${{ steps.get_issue_number.outputs.issue_number }} \
-            -f query="$GRAPHQL_QUERY" \
-            --jq '.data.repository.issue.projectItems.nodes[0].id // empty'
+            -f query="$ISSUEID_QUERY" --jq '.data.repository.issue.projectItems.nodes[0].id // empty'
           )
           ISSUE_GLOBAL_ID=$ISSUEID
           if [ -n "$ISSUE_GLOBAL_ID" ]; then
