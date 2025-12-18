@@ -13,9 +13,11 @@ jobs:
       # プルリクエスト本文からIssue番号を抽出
       - name: Extract Issue number from PR body
         id: get_issue_number
+        env:
+          PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
         run: |
           # PR本文から #123 の形式のIssue番号を抽出する（正規表現は適宜調整してください）
-          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_BODY="$PULL_REQUEST_BODY"
           ISSUE_NUMBER=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
           if [ -n "$ISSUE_NUMBER" ]; then
             echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
