@@ -63,8 +63,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
           ORGANIZATION_NAME: ${{ github.repository_owner }}
-          PROJECT_TITLE: ”@horie-mobile's untitled project”
+          PROJECT_TITLE: "@horie-mobile's untitled project"
         run: |
+          echo "Found PROJECT TITLE: $PROJECT_TITLE"
           PROJECTID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -f query='
             query($orga: String!) {
               organization(login: $orga) {
