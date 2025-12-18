@@ -9,41 +9,215 @@ jobs:
     runs-on: ubuntu-latest
     # レビューのタイプが 'approved'、'changes_requested' の場合にのみ実行
     if: ${{ github.event.review.state == 'approved' || github.event.review.state == 'changes_requested' }}
-    permissions:
-      contents: read
-      issues: write # Issue を更新するための権限が必要
-      pull-requests: read
     steps:
+      # プルリクエスト本文からIssue番号を抽出
       - name: Extract Issue number from PR body
-        id: get_issue_id
+        id: get_issue_number
         run: |
           # PR本文から #123 の形式のIssue番号を抽出する（正規表現は適宜調整してください）
           PR_BODY="${{ github.event.pull_request.body }}"
-          ISSUE_ID=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
-          if [ -n "$ISSUE_ID" ]; then
-            echo "issue_id=$ISSUE_ID" >> $GITHUB_OUTPUT
-            echo "Found Issue ID: $ISSUE_ID"
+          ISSUE_NUMBER=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
+          if [ -n "$ISSUE_NUMBER" ]; then
+            echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+            echo "Found Issue Number: $ISSUE_NUMBER"
           else
-            echo "::error::No Issue ID found in PR body. Please link an issue (e.g., #123)."
+            echo "::error::No Issue NUMBER found in PR body. Please link an issue (e.g., #123)."
+            exit 1
+          fi
+      # Issue番号からIssueのグローバルIDを抽出
+      - name: Extract Issue Id from Issue No
+        id: get_issue_id
+        env:
+          GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+        run: |
+          echo "ISSUEID_QUERY is $ISSUEID_QUERY"
+          ISSUEID=$(gh api graphql \
+            -F orga='${{ github.repository_owner }}' \
+            -F repo='${{ github.event.repository.name }}' \
+            -F numb=${{ steps.get_issue_number.outputs.issue_number }} \
+            -f query='
+              query($orga: String!, $repo: String!, $numb: Int!) {
+                repository(owner: $orga, name: $repo) {
+                  issue(number: $numb) {
+                    projectItems(first: 1) {
+                      nodes {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            ' \
+            --jq '.data.repository.issue.projectItems.nodes[0].id // empty' \
+          )
+          ISSUE_GLOBAL_ID=$ISSUEID
+          if [ -n "$ISSUE_GLOBAL_ID" ]; then
+            echo "issue_global_id=$ISSUE_GLOBAL_ID" >> $GITHUB_OUTPUT
+            echo "Found Issue Id: $ISSUE_GLOBAL_ID"
+          else
+            echo "::error::No Issue Id from Issue No. Please link an issue (e.g., #123)."
+            exit 1
+          fi
+      # Organization名称とプロジェクト名称からプロジェクトIDを抽出
+      - name: Extract Project Id from Project No
+        id: get_Project_id
+        env:
+          GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+        run: |
+          PROJECTID=$(gh api graphql \
+            -F orga='${{ github.repository_owner }}' \
+            -f query='
+              query($orga: String!) {
+                organization(login: $orga) {
+                  projectsV2(first: 20) {
+                    nodes {
+                      id
+                      title
+                    }
+                  }
+                }
+              }
+            ' \
+            | jq -r --arg target "@horie-mobile's untitled project" '.data.organization.projectsV2.nodes[] | select(.title == $target) | .id // empty'
+          )
+          PROJECT_ID=$PROJECTID
+          if [ -n "$PROJECT_ID" ]; then
+            echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+            echo "Found Project Id: $PROJECT_ID"
+          else
+            echo "::error::No Project Id from Project No. Please link an issue (e.g., #123)."
+            exit 1
+          fi
+      # プロジェクトIDからカスタムフィールド「Status」のIDを抽出
+      - name: Extract Custom Field Status Id from Project ID
+        id: get_Status_Field_Id
+        env:
+          GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+        run: |
+          FIELDID=$(gh api graphql \
+            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
+            -f query='
+              query($pjid: ID!) {
+                node(id: $pjid) {
+                  ... on ProjectV2 {
+                    fields(first: 20) {
+                      nodes {
+                        ... on ProjectV2SingleSelectField {
+                          name
+                          id
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ' \
+            | jq -r --arg target "Status" '.data.node.fields.nodes[] | select(.name == $target) | .id // empty'
+          )
+          FIELD_ID=$FIELDID
+          if [ -n "$FIELD_ID" ]; then
+            echo "status_id=$FIELD_ID" >> $GITHUB_OUTPUT
+            echo "Found status Id: $FIELD_ID"
+          else
+            echo "::error::No Status Id from Project No. Please link an issue (e.g., #123)."
+            exit 1
+          fi
+      # プロジェクトIDからカスタムフィールド「Status」のオプション「レビュー否認」のIDを抽出
+      - name: Set Project Custom Field Options Deny Id from
+        id: get_Status_Deny_Id
+        env:
+          GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+        run: |
+          DENYID=$(gh api graphql \
+            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
+            -f query='
+              query($pjid: ID!) {
+                node(id: $pjid) {
+                  ... on ProjectV2 {
+                    fields(first: 20) {
+                      nodes {
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                          options {
+                            id
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ' \
+            --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー否認") | .id // empty'
+          )
+          DENY_ID=$DENYID
+          if [ -n "$DENY_ID" ]; then
+            echo "deny_id=$DENY_ID" >> $GITHUB_OUTPUT
+            echo "Found deny Id: $DENY_ID"
+          else
+            echo "::error::No Deny Id from Project No. Please link an issue (e.g., #123)."
+            exit 1
+          fi
+      # プロジェクトIDからカスタムフィールド「Status」のオプション「レビュー承認」のIDを抽出
+      - name: Set Project Custom Field Options Approve Id from
+        id: get_Status_Approve_Id
+        env:
+          GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+        run: |
+          APPROVEID=$(gh api graphql \
+            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
+            -f query='
+              query($pjid: ID!) {
+                node(id: $pjid) {
+                  ... on ProjectV2 {
+                    fields(first: 20) {
+                      nodes {
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                          options {
+                            id
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ' \
+            --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー承認") | .id // empty'
+          )
+          APPROVE_ID=$APPROVEID
+          if [ -n "$APPROVE_ID" ]; then
+            echo "approve_id=$APPROVE_ID" >> $GITHUB_OUTPUT
+            echo "Found approve Id: $APPROVE_ID"
+          else
+            echo "::error::No Approve Id from Project No. Please link an issue (e.g., #123)."
+            exit 1
+          fi
+      # 実行されたプルリクエストの操作によりレビュー承認・否認のIDを設定
+      - name: Set Project Custom Field Options Id
+        id: set_status
+        run: |
+          if ${{ github.event.review.state == 'approved' }}; then
+            ISSUE_STATUS=${{ steps.get_Status_Approve_Id.outputs.approve_id }} # 承認
+          else
+            ISSUE_STATUS=${{ steps.get_Status_Deny_Id.outputs.deny_id }} # 否認
+          fi
+          if [ -n "$ISSUE_STATUS" ]; then
+            echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
+            echo "Found Issue STATUS: $ISSUE_STATUS"
+          else
+            echo "::error::No Issue STATUS found in Review State. Please check state."
             exit 1
           fi
 
-      - name: Extract Issue number from PR body
-        id: get_issue_status
-        run: |
-          if github.event.review.state == 'approved'; then
-            ISSUE_STATUS="レビュー承認"
-          else
-            ISSUE_STATUS="レビュー否認"
-          fi
-          echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
-
       - name: changes status to the linked Issue
-        uses: actions/github-script@v6
-        with:
-            github.rest.issues.update({
-              issue_number:${{ steps.get_issue_id.outputs.issue_id }},
-              owner:" horie-mobile",
-              repo:" Tokuisaki-Ankenmei001/Sample-Common",
-              state:" Test"
-            });
+        if: ${{ steps.get_issue_number.outputs.issue_number != '' }} && ${{ steps.get_status.outputs.issue_status != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+        run: |
+          gh project item-edit --id '${{ steps.get_issue_id.outputs.issue_global_id }}' --field-id '${{ steps.get_Status_Field_Id.outputs.status_id }}' --project-id '${{ steps.get_project_id.outputs.project_id }}' --single-select-option-id '${{ steps.set_status.outputs.issue_status }}'
