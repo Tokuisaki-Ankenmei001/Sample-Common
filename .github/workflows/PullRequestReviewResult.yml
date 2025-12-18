@@ -30,7 +30,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          ISSUEID_QUERY='
+          ISSUEID_QUERY="
             query($orga: String!, $repo: String!, $numb: Int!) {
               repository(owner: $orga, name: $repo) {
                 issue(number: $numb) {
@@ -42,7 +42,7 @@ jobs:
                 }
               }
             }
-          '
+          "
           echo "ISSUEID_QUERY is $ISSUEID_QUERY"
           ISSUEID=$(gh api graphql \
             -F orga='${{ github.repository_owner }}' \
@@ -65,7 +65,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          PROJECTID_QUERY='
+          PROJECTID_QUERY="
             query($org: String!) {
               organization(login: $org) {
                 projectsV2(first: 20) {
@@ -76,10 +76,10 @@ jobs:
                 }
               }
             }
-          '
+          "
           PROJECTID=$(gh api graphql \
-            -F orga="${{ github.repository_owner }}" \
-            -f query="$PROJECTID_QUERY" \
+            -F orga='${{ github.repository_owner }}' \
+            -f query='$PROJECTID_QUERY' \
             | jq --arg target "@horie-mobile's untitled project" '.data.organization.projectsV2.nodes[] | select(.title == $target) | .id // empty'
           )
           PROJECT_ID=$PROJECTID
@@ -96,7 +96,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          FIELDID_QUERY='
+          FIELDID_QUERY="
             query($id: ID!) {
               node(id: $id) {
                 ... on ProjectV2 {
@@ -111,10 +111,10 @@ jobs:
                 }
               }
             }
-          '
+          "
           FIELDID=$(gh api graphql \
-            -F pjid=${{ steps.get_Project_id.outputs.project_id }} \
-            -f query="$FIELDID_QUERY" \
+            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
+            -f query='$FIELDID_QUERY' \
             | jq --arg target "Status" '.data.node.fields.nodes[] | select(.name == $target) | .id // empty'
           )
           FIELD_ID=$FIELDID
@@ -131,7 +131,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          DENYID_QUERY='
+          DENYID_QUERY="
             query($pjid: ID!) {
               node(id: $pjid) {
                 ... on ProjectV2 {
@@ -150,10 +150,10 @@ jobs:
                 }
               }
             }
-          '
+          "
           DENYID=$(gh api graphql \
-            -F pjid=${{ steps.get_Project_id.outputs.project_id }} \
-            -f query="$DENYID_QUERY" \
+            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
+            -f query='$DENYID_QUERY' \
             --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー否認\") | .id // empty'
           )
           DENY_ID=$DENYID
@@ -170,7 +170,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          APPROVEID_QUERY='
+          APPROVEID_QUERY="
             query($pjid: ID!) {
               node(id: $pjid) {
                 ... on ProjectV2 {
@@ -189,10 +189,10 @@ jobs:
                 }
               }
             }
-          '
+          "
           APPROVEID=$(gh api graphql \
-            -F pjid=${{ steps.get_Project_id.outputs.project_id }} \
-            -f query="$APPROVEID_QUERY" \
+            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
+            -f query='$APPROVEID_QUERY' \
             --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー承認\") | .id // empty'
           )
           APPROVE_ID=$APPROVEID
@@ -219,7 +219,7 @@ jobs:
             echo "::error::No Issue STATUS found in Review State. Please check state."
             exit 1
           fi
-
+      # 当該ISSUEのカスタムフィールドStatusの設定変更
       - name: changes status to the linked Issue
         if: ${{ steps.get_issue_number.outputs.issue_number != '' }} && ${{ steps.get_status.outputs.issue_status != '' }}
         env:
