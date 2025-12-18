@@ -188,7 +188,7 @@ jobs:
                 }
               }
             ' \
-            --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー承認\") | .id // empty'
+            --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー承認") | .id // empty'
           )
           APPROVE_ID=$APPROVEID
           if [ -n "$APPROVE_ID" ]; then
