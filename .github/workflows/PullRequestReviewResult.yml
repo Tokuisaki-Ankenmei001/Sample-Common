@@ -78,7 +78,7 @@ jobs:
                 }
               }
             ' \
-            | jq --arg target "@horie-mobile's untitled project" '.data.organization.projectsV2.nodes[] | select(.title == $target) | .id // empty'
+            | jq -r --arg target "@horie-mobile's untitled project" '.data.organization.projectsV2.nodes[] | select(.title == $target) | .id // empty'
           )
           PROJECT_ID=$PROJECTID
           if [ -n "$PROJECT_ID" ]; then
@@ -112,7 +112,7 @@ jobs:
                 }
               }
             ' \
-            | jq --arg target "Status" '.data.node.fields.nodes[] | select(.name == $target) | .id // empty'
+            | jq -r --arg target "Status" '.data.node.fields.nodes[] | select(.name == $target) | .id // empty'
           )
           FIELD_ID=$FIELDID
           if [ -n "$FIELD_ID" ]; then
