@@ -65,7 +65,6 @@ jobs:
           ORGANIZATION_NAME: ${{ github.repository_owner }}
           PROJECT_TITLE: "@horie-mobile's untitled project"
         run: |
-          echo "Found PROJECT TITLE: $PROJECT_TITLE"
           PROJECTID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -f query='
             query($orga: String!) {
               organization(login: $orga) {
@@ -195,7 +194,7 @@ jobs:
           APP_STATUS: ${{ steps.get_Status_Approve_Id.outputs.approve_id }}
           DEN_STATUS: ${{ steps.get_Status_Deny_Id.outputs.deny_id }}
         run: |
-          if $GET_STATUS == 'approved' then
+          if [ "$GET_STATUS" = "approved" ]; then
             ISSUE_STATUS=$APP_STATUS # 承認
           else
             ISSUE_STATUS=$DEN_STATUS # 否認
