@@ -193,7 +193,7 @@ jobs:
           APP_STATUS: ${{ steps.get_Status_Approve_Id.outputs.approve_id }}
           DEN_STATUS: ${{ steps.get_Status_Deny_Id.outputs.deny_id }}
         run: |
-          if ${{ GET_STATUS == 'approved' }}; then
+          if $GET_STATUS == 'approved' then
             ISSUE_STATUS=$APP_STATUS # 承認
           else
             ISSUE_STATUS=$DEN_STATUS # 否認
