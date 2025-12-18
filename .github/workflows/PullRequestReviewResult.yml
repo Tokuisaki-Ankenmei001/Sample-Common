@@ -29,26 +29,24 @@ jobs:
         id: get_issue_id
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+          ORGANIZATION_NAME: ${{ github.repository_owner }}
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+          ISSUE_NO: ${{ steps.get_issue_number.outputs.issue_number }}
         run: |
           echo "ISSUEID_QUERY is $ISSUEID_QUERY"
-          ISSUEID=$(gh api graphql \
-            -F orga='${{ github.repository_owner }}' \
-            -F repo='${{ github.event.repository.name }}' \
-            -F numb=${{ steps.get_issue_number.outputs.issue_number }} \
-            -f query='
-              query($orga: String!, $repo: String!, $numb: Int!) {
-                repository(owner: $orga, name: $repo) {
-                  issue(number: $numb) {
-                    projectItems(first: 1) {
-                      nodes {
-                        id
-                      }
+          ISSUEID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -F repo="$REPOSITORY_NAME" -F numb=$ISSUE_NO -f query='
+            query($orga: String!, $repo: String!, $numb: Int!) {
+              repository(owner: $orga, name: $repo) {
+                issue(number: $numb) {
+                  projectItems(first: 1) {
+                    nodes {
+                      id
                     }
                   }
                 }
               }
-            ' --jq '.data.repository.issue.projectItems.nodes[0].id // empty' \
-          )
+            }
+          ' --jq '.data.repository.issue.projectItems.nodes[0].id // empty')
           ISSUE_GLOBAL_ID=$ISSUEID
           if [ -n "$ISSUE_GLOBAL_ID" ]; then
             echo "issue_global_id=$ISSUE_GLOBAL_ID" >> $GITHUB_OUTPUT
@@ -62,22 +60,20 @@ jobs:
         id: get_Project_id
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+          ORGANIZATION_NAME: ${{ github.repository_owner }}
         run: |
-          PROJECTID=$(gh api graphql \
-            -F orga='${{ github.repository_owner }}' \
-            -f query='
-              query($orga: String!) {
-                organization(login: $orga) {
-                  projectsV2(first: 20) {
-                    nodes {
-                      id
-                      title
-                    }
+          PROJECTID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -f query='
+            query($orga: String!) {
+              organization(login: $orga) {
+                projectsV2(first: 20) {
+                  nodes {
+                    id
+                    title
                   }
                 }
               }
-            ' --jq '.data.organization.projectsV2.nodes[] | select(.title == "@horie-mobile's untitled project") | .id // empty'
-          )
+            }
+          ' --jq '.data.organization.projectsV2.nodes[] | select(.title == "@horie-mobile's untitled project") | .id // empty')
           PROJECT_ID=$PROJECTID
           if [ -n "$PROJECT_ID" ]; then
             echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
@@ -91,26 +87,24 @@ jobs:
         id: get_Status_Field_Id
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+          PROJECT_ID: ${{ steps.get_Project_id.outputs.project_id }}
         run: |
-          FIELDID=$(gh api graphql \
-            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
-            -f query='
-              query($pjid: ID!) {
-                node(id: $pjid) {
-                  ... on ProjectV2 {
-                    fields(first: 20) {
-                      nodes {
-                        ... on ProjectV2SingleSelectField {
-                          name
-                          id
-                        }
+          FIELDID=$(gh api graphql -F pjid="$PROJECT_ID" -f query='
+            query($pjid: ID!) {
+              node(id: $pjid) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        name
+                        id
                       }
                     }
                   }
                 }
               }
-            ' --jq '.data.node.fields.nodes[] | select(.name == "Status") | .id // empty'
-          )
+            }
+          ' --jq '.data.node.fields.nodes[] | select(.name == "Status") | .id // empty')
           FIELD_ID=$FIELDID
           if [ -n "$FIELD_ID" ]; then
             echo "status_id=$FIELD_ID" >> $GITHUB_OUTPUT
@@ -124,30 +118,28 @@ jobs:
         id: get_Status_Deny_Id
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+          PROJECT_ID: ${{ steps.get_Project_id.outputs.project_id }}
         run: |
-          DENYID=$(gh api graphql \
-            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
-            -f query='
-              query($pjid: ID!) {
-                node(id: $pjid) {
-                  ... on ProjectV2 {
-                    fields(first: 20) {
-                      nodes {
-                        ... on ProjectV2SingleSelectField {
+          DENYID=$(gh api graphql -F pjid="$PROJECT_ID" -f query='
+            query($pjid: ID!) {
+              node(id: $pjid) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
                           id
                           name
-                          options {
-                            id
-                            name
-                          }
                         }
                       }
                     }
                   }
                 }
               }
-            ' --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー否認") | .id // empty'
-          )
+            }
+          ' --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー否認") | .id // empty')
           DENY_ID=$DENYID
           if [ -n "$DENY_ID" ]; then
             echo "deny_id=$DENY_ID" >> $GITHUB_OUTPUT
@@ -161,30 +153,28 @@ jobs:
         id: get_Status_Approve_Id
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+          PROJECT_ID: ${{ steps.get_Project_id.outputs.project_id }}
         run: |
-          APPROVEID=$(gh api graphql \
-            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
-            -f query='
-              query($pjid: ID!) {
-                node(id: $pjid) {
-                  ... on ProjectV2 {
-                    fields(first: 20) {
-                      nodes {
-                        ... on ProjectV2SingleSelectField {
+          APPROVEID=$(gh api graphql -F pjid="$PROJECT_ID" -f query='
+            query($pjid: ID!) {
+              node(id: $pjid) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
                           id
                           name
-                          options {
-                            id
-                            name
-                          }
                         }
                       }
                     }
                   }
                 }
               }
-            ' --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー承認") | .id // empty'
-          )
+            }
+          ' --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー承認") | .id // empty')
           APPROVE_ID=$APPROVEID
           if [ -n "$APPROVE_ID" ]; then
             echo "approve_id=$APPROVE_ID" >> $GITHUB_OUTPUT
@@ -196,11 +186,15 @@ jobs:
       # 実行されたプルリクエストの操作によりレビュー承認・否認のIDを設定
       - name: Set Project Custom Field Options Id
         id: set_status
+        env:
+          GET_STATUS: ${{ github.event.review.state }}
+          APP_STATUS: ${{ steps.get_Status_Approve_Id.outputs.approve_id }}
+          DEN_STATUS: ${{ steps.get_Status_Deny_Id.outputs.deny_id }}
         run: |
-          if ${{ github.event.review.state == 'approved' }}; then
-            ISSUE_STATUS=${{ steps.get_Status_Approve_Id.outputs.approve_id }} # 承認
+          if ${{ GET_STATUS == 'approved' }}; then
+            ISSUE_STATUS=$APP_STATUS # 承認
           else
-            ISSUE_STATUS=${{ steps.get_Status_Deny_Id.outputs.deny_id }} # 否認
+            ISSUE_STATUS=$DEN_STATUS # 否認
           fi
           if [ -n "$ISSUE_STATUS" ]; then
             echo "issue_status=$ISSUE_STATUS" >> $GITHUB_OUTPUT
@@ -214,9 +208,9 @@ jobs:
         if: ${{ steps.get_issue_number.outputs.issue_number != '' }} && ${{ steps.get_status.outputs.issue_status != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
+          ISSUE_ID: ${{ steps.get_issue_id.outputs.issue_global_id }}
+          STATUS_ID: ${{ steps.get_Status_Field_Id.outputs.status_id }}
+          PROJECT_ID: ${{ steps.get_project_id.outputs.project_id }}
+          OPTION_ID: ${{ steps.set_status.outputs.issue_status }}
         run: |
-          gh project item-edit \
-            --id '${{ steps.get_issue_id.outputs.issue_global_id }}' \
-            --field-id '${{ steps.get_Status_Field_Id.outputs.status_id }}' \
-            --project-id '${{ steps.get_project_id.outputs.project_id }}' \
-            --single-select-option-id '${{ steps.set_status.outputs.issue_status }}'
+          gh project item-edit --id "$ISSUE_ID" --field-id "$STATUS_ID" --project-id "$PROJECT_ID" --single-select-option-id "$OPTION_ID"
