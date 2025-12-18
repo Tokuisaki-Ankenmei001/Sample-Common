@@ -1,1 +1,1 @@
-// Issue No.72
+// Issue No.72 - 否認後修正
