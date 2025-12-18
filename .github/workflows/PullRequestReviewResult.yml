@@ -45,10 +45,10 @@ jobs:
           "
           echo "ISSUEID_QUERY is $ISSUEID_QUERY"
           ISSUEID=$(gh api graphql \
-            -F orga='${{ github.repository_owner }}' \
-            -F repo='${{ github.event.repository.name }}' \
+            -F orga="${{ github.repository_owner }}" \
+            -F repo="${{ github.event.repository.name }}" \
             -F numb=${{ steps.get_issue_number.outputs.issue_number }} \
-            -f query='$ISSUEID_QUERY' \
+            -f query="$ISSUEID_QUERY" \
             --jq '.data.repository.issue.projectItems.nodes[0].id // empty' \
           )
           ISSUE_GLOBAL_ID=$ISSUEID
@@ -78,8 +78,8 @@ jobs:
             }
           "
           PROJECTID=$(gh api graphql \
-            -F orga='${{ github.repository_owner }}' \
-            -f query='$PROJECTID_QUERY' \
+            -F orga="${{ github.repository_owner }}" \
+            -f query="$PROJECTID_QUERY" \
             | jq --arg target "@horie-mobile's untitled project" '.data.organization.projectsV2.nodes[] | select(.title == $target) | .id // empty'
           )
           PROJECT_ID=$PROJECTID
@@ -113,8 +113,8 @@ jobs:
             }
           "
           FIELDID=$(gh api graphql \
-            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
-            -f query='$FIELDID_QUERY' \
+            -F pjid="${{ steps.get_Project_id.outputs.project_id }}" \
+            -f query="$FIELDID_QUERY" \
             | jq --arg target "Status" '.data.node.fields.nodes[] | select(.name == $target) | .id // empty'
           )
           FIELD_ID=$FIELDID
@@ -152,8 +152,8 @@ jobs:
             }
           "
           DENYID=$(gh api graphql \
-            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
-            -f query='$DENYID_QUERY' \
+            -F pjid="${{ steps.get_Project_id.outputs.project_id }}" \
+            -f query="$DENYID_QUERY" \
             --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー否認\") | .id // empty'
           )
           DENY_ID=$DENYID
@@ -191,8 +191,8 @@ jobs:
             }
           "
           APPROVEID=$(gh api graphql \
-            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
-            -f query='$APPROVEID_QUERY' \
+            -F pjid="${{ steps.get_Project_id.outputs.project_id }}" \
+            -f query="$APPROVEID_QUERY" \
             --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー承認\") | .id // empty'
           )
           APPROVE_ID=$APPROVEID
