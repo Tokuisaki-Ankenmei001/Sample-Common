@@ -67,7 +67,7 @@ jobs:
           PROJECTID=$(gh api graphql \
             -F orga='${{ github.repository_owner }}' \
             -f query='
-              query($org: String!) {
+              query($orga: String!) {
                 organization(login: $org) {
                   projectsV2(first: 20) {
                     nodes {
@@ -97,8 +97,8 @@ jobs:
           FIELDID=$(gh api graphql \
             -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
             -f query='
-              query($id: ID!) {
-                node(id: $id) {
+              query($pjid: ID!) {
+                node(id: $pjid) {
                   ... on ProjectV2 {
                     fields(first: 20) {
                       nodes {
