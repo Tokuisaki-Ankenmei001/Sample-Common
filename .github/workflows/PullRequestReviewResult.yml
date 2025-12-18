@@ -68,7 +68,7 @@ jobs:
             -F orga='${{ github.repository_owner }}' \
             -f query='
               query($orga: String!) {
-                organization(login: $org) {
+                organization(login: $orga) {
                   projectsV2(first: 20) {
                     nodes {
                       id
