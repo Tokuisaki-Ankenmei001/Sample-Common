@@ -47,8 +47,7 @@ jobs:
                   }
                 }
               }
-            ' \
-            --jq '.data.repository.issue.projectItems.nodes[0].id // empty' \
+            ' --jq '.data.repository.issue.projectItems.nodes[0].id // empty' \
           )
           ISSUE_GLOBAL_ID=$ISSUEID
           if [ -n "$ISSUE_GLOBAL_ID" ]; then
@@ -77,8 +76,7 @@ jobs:
                   }
                 }
               }
-            ' \
-            | jq -r --arg target "@horie-mobile's untitled project" '.data.organization.projectsV2.nodes[] | select(.title == $target) | .id // empty'
+            ' --jq '.data.organization.projectsV2.nodes[] | select(.title == "@horie-mobile's untitled project") | .id // empty'
           )
           PROJECT_ID=$PROJECTID
           if [ -n "$PROJECT_ID" ]; then
@@ -111,8 +109,7 @@ jobs:
                   }
                 }
               }
-            ' \
-            | jq -r --arg target "Status" '.data.node.fields.nodes[] | select(.name == $target) | .id // empty'
+            ' --jq '.data.node.fields.nodes[] | select(.name == "Status") | .id // empty'
           )
           FIELD_ID=$FIELDID
           if [ -n "$FIELD_ID" ]; then
@@ -149,8 +146,7 @@ jobs:
                   }
                 }
               }
-            ' \
-            --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー否認") | .id // empty'
+            ' --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー否認") | .id // empty'
           )
           DENY_ID=$DENYID
           if [ -n "$DENY_ID" ]; then
@@ -187,8 +183,7 @@ jobs:
                   }
                 }
               }
-            ' \
-            --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー承認") | .id // empty'
+            ' --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー承認") | .id // empty'
           )
           APPROVE_ID=$APPROVEID
           if [ -n "$APPROVE_ID" ]; then
@@ -220,4 +215,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          gh project item-edit --id '${{ steps.get_issue_id.outputs.issue_global_id }}' --field-id '${{ steps.get_Status_Field_Id.outputs.status_id }}' --project-id '${{ steps.get_project_id.outputs.project_id }}' --single-select-option-id '${{ steps.set_status.outputs.issue_status }}'
+          gh project item-edit \
+            --id '${{ steps.get_issue_id.outputs.issue_global_id }}' \
+            --field-id '${{ steps.get_Status_Field_Id.outputs.status_id }}' \
+            --project-id '${{ steps.get_project_id.outputs.project_id }}' \
+            --single-select-option-id '${{ steps.set_status.outputs.issue_status }}'
