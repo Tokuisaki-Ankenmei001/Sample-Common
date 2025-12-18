@@ -192,7 +192,7 @@ jobs:
           )
           APPROVE_ID=$APPROVEID
           if [ -n "$APPROVE_ID" ]; then
-            echo "approve_id=$DENY_ID" >> $GITHUB_OUTPUT
+            echo "approve_id=$APPROVE_ID" >> $GITHUB_OUTPUT
             echo "Found approve Id: $APPROVE_ID"
           else
             echo "::error::No Approve Id from Project No. Please link an issue (e.g., #123)."
