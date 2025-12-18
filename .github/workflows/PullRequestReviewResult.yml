@@ -220,4 +220,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          gh project item-edit --id '${{ steps.get_issue_id.outputs.issue_global_id }}' --field-id '${{ steps.get_Status_Field_Id.outputs.status_id }}' --project-id '${{ steps.get_project_id.outputs.project_id }}' --single-select-option-id '${{ steps.get_status.outputs.issue_status }}
+          gh project item-edit --id '${{ steps.get_issue_id.outputs.issue_global_id }}' --field-id '${{ steps.get_Status_Field_Id.outputs.status_id }}' --project-id '${{ steps.get_project_id.outputs.project_id }}' --single-select-option-id '${{ steps.set_status.outputs.issue_status }}'
