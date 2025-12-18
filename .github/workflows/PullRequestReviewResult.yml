@@ -150,7 +150,7 @@ jobs:
                 }
               }
             ' \
-            --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー否認\") | .id // empty'
+            --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー否認") | .id // empty'
           )
           DENY_ID=$DENYID
           if [ -n "$DENY_ID" ]; then
