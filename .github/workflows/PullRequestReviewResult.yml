@@ -30,25 +30,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          ISSUEID_QUERY="
-            query($orga: String!, $repo: String!, $numb: Int!) {
-              repository(owner: $orga, name: $repo) {
-                issue(number: $numb) {
-                  projectItems(first: 1) {
-                    nodes {
-                      id
+          echo "ISSUEID_QUERY is $ISSUEID_QUERY"
+          ISSUEID=$(gh api graphql \
+            -F orga='${{ github.repository_owner }}' \
+            -F repo='${{ github.event.repository.name }}' \
+            -F numb=${{ steps.get_issue_number.outputs.issue_number }} \
+            -f query='
+              query($orga: String!, $repo: String!, $numb: Int!) {
+                repository(owner: $orga, name: $repo) {
+                  issue(number: $numb) {
+                    projectItems(first: 1) {
+                      nodes {
+                        id
+                      }
                     }
                   }
                 }
               }
-            }
-          "
-          echo "ISSUEID_QUERY is $ISSUEID_QUERY"
-          ISSUEID=$(gh api graphql \
-            -F orga="${{ github.repository_owner }}" \
-            -F repo="${{ github.event.repository.name }}" \
-            -F numb=${{ steps.get_issue_number.outputs.issue_number }} \
-            -f query="$ISSUEID_QUERY" \
+            ' \
             --jq '.data.repository.issue.projectItems.nodes[0].id // empty' \
           )
           ISSUE_GLOBAL_ID=$ISSUEID
@@ -65,21 +64,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          PROJECTID_QUERY="
-            query($org: String!) {
-              organization(login: $org) {
-                projectsV2(first: 20) {
-                  nodes {
-                    id
-                    title
+          PROJECTID=$(gh api graphql \
+            -F orga='${{ github.repository_owner }}' \
+            -f query='
+              query($org: String!) {
+                organization(login: $org) {
+                  projectsV2(first: 20) {
+                    nodes {
+                      id
+                      title
+                    }
                   }
                 }
               }
-            }
-          "
-          PROJECTID=$(gh api graphql \
-            -F orga="${{ github.repository_owner }}" \
-            -f query="$PROJECTID_QUERY" \
+            ' \
             | jq --arg target "@horie-mobile's untitled project" '.data.organization.projectsV2.nodes[] | select(.title == $target) | .id // empty'
           )
           PROJECT_ID=$PROJECTID
@@ -96,25 +94,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          FIELDID_QUERY="
-            query($id: ID!) {
-              node(id: $id) {
-                ... on ProjectV2 {
-                  fields(first: 20) {
-                    nodes {
-                      ... on ProjectV2SingleSelectField {
-                        name
-                        id
+          FIELDID=$(gh api graphql \
+            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
+            -f query='
+              query($id: ID!) {
+                node(id: $id) {
+                  ... on ProjectV2 {
+                    fields(first: 20) {
+                      nodes {
+                        ... on ProjectV2SingleSelectField {
+                          name
+                          id
+                        }
                       }
                     }
                   }
                 }
               }
-            }
-          "
-          FIELDID=$(gh api graphql \
-            -F pjid="${{ steps.get_Project_id.outputs.project_id }}" \
-            -f query="$FIELDID_QUERY" \
+            ' \
             | jq --arg target "Status" '.data.node.fields.nodes[] | select(.name == $target) | .id // empty'
           )
           FIELD_ID=$FIELDID
@@ -131,29 +128,28 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          DENYID_QUERY="
-            query($pjid: ID!) {
-              node(id: $pjid) {
-                ... on ProjectV2 {
-                  fields(first: 20) {
-                    nodes {
-                      ... on ProjectV2SingleSelectField {
-                        id
-                        name
-                        options {
+          DENYID=$(gh api graphql \
+            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
+            -f query='
+              query($pjid: ID!) {
+                node(id: $pjid) {
+                  ... on ProjectV2 {
+                    fields(first: 20) {
+                      nodes {
+                        ... on ProjectV2SingleSelectField {
                           id
                           name
+                          options {
+                            id
+                            name
+                          }
                         }
                       }
                     }
                   }
                 }
               }
-            }
-          "
-          DENYID=$(gh api graphql \
-            -F pjid="${{ steps.get_Project_id.outputs.project_id }}" \
-            -f query="$DENYID_QUERY" \
+            ' \
             --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー否認\") | .id // empty'
           )
           DENY_ID=$DENYID
@@ -170,29 +166,28 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
         run: |
-          APPROVEID_QUERY="
-            query($pjid: ID!) {
-              node(id: $pjid) {
-                ... on ProjectV2 {
-                  fields(first: 20) {
-                    nodes {
-                      ... on ProjectV2SingleSelectField {
-                        id
-                        name
-                        options {
+          APPROVEID=$(gh api graphql \
+            -F pjid='${{ steps.get_Project_id.outputs.project_id }}' \
+            -f query='
+              query($pjid: ID!) {
+                node(id: $pjid) {
+                  ... on ProjectV2 {
+                    fields(first: 20) {
+                      nodes {
+                        ... on ProjectV2SingleSelectField {
                           id
                           name
+                          options {
+                            id
+                            name
+                          }
                         }
                       }
                     }
                   }
                 }
               }
-            }
-          "
-          APPROVEID=$(gh api graphql \
-            -F pjid="${{ steps.get_Project_id.outputs.project_id }}" \
-            -f query="$APPROVEID_QUERY" \
+            ' \
             --jq '.data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"レビュー承認\") | .id // empty'
           )
           APPROVE_ID=$APPROVEID
@@ -219,7 +214,7 @@ jobs:
             echo "::error::No Issue STATUS found in Review State. Please check state."
             exit 1
           fi
-      # 当該ISSUEのカスタムフィールドStatusの設定変更
+
       - name: changes status to the linked Issue
         if: ${{ steps.get_issue_number.outputs.issue_number != '' }} && ${{ steps.get_status.outputs.issue_status != '' }}
         env:
