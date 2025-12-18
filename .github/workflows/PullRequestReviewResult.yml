@@ -63,6 +63,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.Sample_My_Secret }}
           ORGANIZATION_NAME: ${{ github.repository_owner }}
+          PROJECT_TITLE: ”@horie-mobile's untitled project”
         run: |
           PROJECTID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -f query='
             query($orga: String!) {
@@ -75,7 +76,7 @@ jobs:
                 }
               }
             }
-          ' --jq '.data.organization.projectsV2.nodes[] | select(.title == "@horie-mobile's untitled project") | .id // empty')
+          ' --jq '.data.organization.projectsV2.nodes[] | select(.title == "$PROJECT_TITLE") | .id // empty')
           PROJECT_ID=$PROJECTID
           if [ -n "$PROJECT_ID" ]; then
             echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
