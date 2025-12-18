@@ -77,7 +77,7 @@ jobs:
                 }
               }
             }
-          ' --jq '.data.organization.projectsV2.nodes[] | select(.title == "$PROJECT_TITLE") | .id // empty')
+          ' --jq ".data.organization.projectsV2.nodes[] | select(.title == \"$PROJECT_TITLE\") | .id // empty")
           PROJECT_ID=$PROJECTID
           if [ -n "$PROJECT_ID" ]; then
             echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
