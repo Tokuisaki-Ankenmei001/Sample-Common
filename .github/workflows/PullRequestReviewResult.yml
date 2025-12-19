@@ -36,8 +36,7 @@ jobs:
           ISSUE_NO: ${{ steps.get_issue_number.outputs.issue_number }}
         run: |
           ISSUEID_QUERY='query($orga: String!, $repo: String!, $numb: Int!) { repository(owner: $orga, name: $repo) { issue(number: $numb) { projectItems(first: 1) { nodes { id } } } } } '
-          ISSUEID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -F repo="$REPOSITORY_NAME" -F numb=$ISSUE_NO -f query="$ISSUEID_QUERY" \
-          --jq '.data.repository.issue.projectItems.nodes[0].id // empty')
+          ISSUEID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -F repo="$REPOSITORY_NAME" -F numb=$ISSUE_NO -f query="$ISSUEID_QUERY" --jq '.data.repository.issue.projectItems.nodes[0].id // empty')
           ISSUE_GLOBAL_ID=$ISSUEID
           if [ -n "$ISSUE_GLOBAL_ID" ]; then
             echo "issue_global_id=$ISSUE_GLOBAL_ID" >> $GITHUB_OUTPUT
@@ -55,8 +54,7 @@ jobs:
           PROJECT_TITLE: "@horie-mobile's untitled project"
         run: |
           PROJECTID_QUERY='query($orga: String!) { organization(login: $orga) { projectsV2(first: 20) { nodes { id title } } } }'
-          PROJECTID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -f query="$PROJECTID_QUERY"
-          --jq ".data.organization.projectsV2.nodes[] | select(.title == \"$PROJECT_TITLE\") | .id // empty")
+          PROJECTID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -f query="$PROJECTID_QUERY" --jq ".data.organization.projectsV2.nodes[] | select(.title == \"$PROJECT_TITLE\") | .id // empty")
           PROJECT_ID=$PROJECTID
           if [ -n "$PROJECT_ID" ]; then
             echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
@@ -73,8 +71,7 @@ jobs:
           PROJECT_ID: ${{ steps.get_Project_id.outputs.project_id }}
         run: |
           FIELDID_QUERY='query($pjid: ID!) { node(id: $pjid) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { name id } } } } } }'
-          FIELDID=$(gh api graphql -F pjid="$PROJECT_ID" -f query="$FIELDID_QUERY" \
-          --jq '.data.node.fields.nodes[] | select(.name == "Status") | .id // empty')
+          FIELDID=$(gh api graphql -F pjid="$PROJECT_ID" -f query="$FIELDID_QUERY" --jq '.data.node.fields.nodes[] | select(.name == "Status") | .id // empty')
           FIELD_ID=$FIELDID
           if [ -n "$FIELD_ID" ]; then
             echo "status_id=$FIELD_ID" >> $GITHUB_OUTPUT
@@ -91,8 +88,7 @@ jobs:
           PROJECT_ID: ${{ steps.get_Project_id.outputs.project_id }}
         run: |
           DENYID_QUERY='query($pjid: ID!) { node(id: $pjid) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }'
-          DENYID=$(gh api graphql -F pjid="$PROJECT_ID" -f query="$DENYID_QUERY" \
-          --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー否認") | .id // empty')
+          DENYID=$(gh api graphql -F pjid="$PROJECT_ID" -f query="$DENYID_QUERY" --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー否認") | .id // empty')
           DENY_ID=$DENYID
           if [ -n "$DENY_ID" ]; then
             echo "deny_id=$DENY_ID" >> $GITHUB_OUTPUT
@@ -109,8 +105,7 @@ jobs:
           PROJECT_ID: ${{ steps.get_Project_id.outputs.project_id }}
         run: |
           APPROVEID_QUERY='query($pjid: ID!) { node(id: $pjid) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }'
-          APPROVEID=$(gh api graphql -F pjid="$PROJECT_ID" -f query="$APPROVEID_QUERY" \
-          --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー承認") | .id // empty')
+          APPROVEID=$(gh api graphql -F pjid="$PROJECT_ID" -f query="$APPROVEID_QUERY" --jq '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "レビュー承認") | .id // empty')
           APPROVE_ID=$APPROVEID
           if [ -n "$APPROVE_ID" ]; then
             echo "approve_id=$APPROVE_ID" >> $GITHUB_OUTPUT
