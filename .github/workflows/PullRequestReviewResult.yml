@@ -71,8 +71,22 @@ jobs:
           ORGANIZATION_NAME: ${{ github.repository_owner }}
           PROJECT_TITLE: "@horie-mobile's untitled project"
         run: |
-          PROJECTID_QUERY='query($orga: String!) { organization(login: $orga) { projectsV2(first: 20) { nodes { id title } } } }'
-          PROJECTID=$(gh api graphql -F orga="$ORGANIZATION_NAME" -f query="$PROJECTID_QUERY" --jq ".data.organization.projectsV2.nodes[] | select(.title == \"$PROJECT_TITLE\") | .id // empty")
+          PROJECTID_QUERY='
+            query($orga: String!) { 
+              organization(login: $orga) { 
+                projectsV2(first: 20) { 
+                  nodes { 
+                    id 
+                    title 
+                  } 
+                } 
+              } 
+            }
+          '
+          PROJECTID=$(gh api graphql \
+            -F orga="$ORGANIZATION_NAME" \
+            -f query="$PROJECTID_QUERY" \
+            --jq ".data.organization.projectsV2.nodes[] | select(.title == \"$PROJECT_TITLE\") | .id // empty")
           PROJECT_ID=$PROJECTID
           if [ -n "$PROJECT_ID" ]; then
             echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
